@@ -4,6 +4,8 @@ import 'package:educode_ai/src/features/auth/data/auth_repository.dart';
 import 'package:educode_ai/src/features/auth/data/models/auth_user.dart';
 import 'package:educode_ai/src/features/courses/data/course_repository.dart';
 import 'package:educode_ai/src/features/courses/data/models/course.dart';
+import 'package:educode_ai/src/features/progress/data/models/learning_progress.dart';
+import 'package:educode_ai/src/features/progress/data/progress_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -118,12 +120,40 @@ class _FakeCourseRepository implements CourseRepository {
 
 }
 
+class _FakeProgressRepository implements ProgressRepository {
+  final Set<String> _completedLessonIds = {};
+
+  @override
+  Future<LessonCompletion> completeLesson(String lessonId) async {
+    _completedLessonIds.add(lessonId);
+    return LessonCompletion(
+      id: 'progress-$lessonId',
+      lessonId: lessonId,
+      isCompleted: true,
+      completedAt: DateTime.utc(2026, 11, 22),
+    );
+  }
+
+  @override
+  Future<LearningProgressSummary> getMyProgress() async {
+    return LearningProgressSummary(
+      userId: 'test-user',
+      completedLessonCount: _completedLessonIds.length,
+      completedCourseCount: 0,
+      completedLessonIds: Set.unmodifiable(_completedLessonIds),
+    );
+  }
+}
+
 Widget _buildApp(_FakeAuthRepository repository) {
   return ProviderScope(
     overrides: [
       authRepositoryProvider.overrideWith((ref) => repository),
       courseRepositoryProvider.overrideWith(
         (ref) => _FakeCourseRepository(),
+      ),
+      progressRepositoryProvider.overrideWith(
+        (ref) => _FakeProgressRepository(),
       ),
     ],
     child: const EduCodeApp(),
@@ -184,6 +214,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Kod misoli'), findsOneWidget);
     expect(find.text('Darsni tugatdim'), findsOneWidget);
+
+    await tester.tap(find.text('Darsni tugatdim'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dars yakunlangan'), findsOneWidget);
+    expect(
+      find.text('Natijangiz profilingizdagi o‘quv progressiga qo‘shildi.'),
+      findsOneWidget,
+    );
 
     await tester.pageBack();
     await tester.pumpAndSettle();
