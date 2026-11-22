@@ -12,8 +12,8 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
 
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => ApiAuthRepository(
-    dio: ref.watch(dioProvider),
-    storage: ref.watch(secureStorageProvider),
+    ref.watch(dioProvider),
+    ref.watch(secureStorageProvider),
   ),
 );
 
