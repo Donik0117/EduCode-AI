@@ -77,6 +77,45 @@ class _FakeCourseRepository implements CourseRepository {
           estimatedHours: 18,
         ),
       ];
+
+  @override
+  Future<List<CourseModule>> getModules(String courseId) async => const [
+        CourseModule(
+          id: 'module-python-core',
+          courseId: 'python-1',
+          title: 'Python asoslari',
+          description: 'Python dasturlash tilining birinchi qadamlari.',
+          position: 1,
+          lessonsCount: 1,
+        ),
+      ];
+
+  @override
+  Future<List<LessonSummary>> getLessons(String moduleId) async => const [
+        LessonSummary(
+          id: 'lesson-python-variables',
+          moduleId: 'module-python-core',
+          title: 'O‘zgaruvchilar va ma’lumot turlari',
+          summary: 'Qiymatlarni o‘zgaruvchilarda saqlash.',
+          language: 'Python',
+          durationMinutes: 12,
+          position: 1,
+        ),
+      ];
+
+  @override
+  Future<LessonContent> getLesson(String lessonId) async => const LessonContent(
+        id: 'lesson-python-variables',
+        moduleId: 'module-python-core',
+        title: 'O‘zgaruvchilar va ma’lumot turlari',
+        summary: 'Qiymatlarni o‘zgaruvchilarda saqlash.',
+        language: 'Python',
+        durationMinutes: 12,
+        position: 1,
+        content: '# O‘zgaruvchilar\n\nO‘zgaruvchi qiymat saqlaydi.',
+        codeExample: 'name = "Ali"\nprint(name)',
+      );
+
 }
 
 Widget _buildApp(_FakeAuthRepository repository) {
@@ -134,6 +173,22 @@ void main() {
     await tester.ensureVisible(find.text('Python dasturlash'));
     await tester.pumpAndSettle();
     expect(find.text('Python dasturlash'), findsOneWidget);
+    await tester.tap(find.text('Python dasturlash').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kurs dasturi'), findsOneWidget);
+    expect(find.text('Python asoslari'), findsOneWidget);
+    expect(find.text('O‘zgaruvchilar va ma’lumot turlari'), findsOneWidget);
+
+    await tester.tap(find.text('O‘zgaruvchilar va ma’lumot turlari'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kod misoli'), findsOneWidget);
+    expect(find.text('Darsni tugatdim'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Amaliyot'));
     await tester.pumpAndSettle();
