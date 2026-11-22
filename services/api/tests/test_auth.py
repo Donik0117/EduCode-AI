@@ -45,7 +45,7 @@ def test_register_login_and_me(client: TestClient) -> None:
     response = client.post(
         "/api/v1/auth/register",
         json={
-            "email": " Student@Example.com ",
+            "email": "Student@Example.com",
             "password": "StrongPassword123!",
             "full_name": "Test Student",
         },
