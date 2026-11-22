@@ -7,61 +7,88 @@ Sun’iy intellekt texnologiyalari asosida dasturlashni o‘rgatishga mo‘ljall
 ## BMI mavzusi
 **Sun’iy intellekt texnologiyalari asosida dasturlashni o‘rgatishga mo‘ljallangan mobil ta’lim platformasini ishlab chiqish.**
 
-## Loyihaning maqsadi
-EduCode AI dasturlashni endi boshlayotgan va bilimini rivojlantirmoqchi bo‘lgan o‘quvchilarga individual ta’lim yo‘nalishi, interaktiv darslar, amaliy topshiriqlar va AI mentor yordamida o‘rganish imkonini beradi.
-
 ## Arxitektura
-
 - `apps/mobile` — Flutter mobil ilovasi (Dart, Riverpod, feature-first).
 - `services/api` — FastAPI backend.
+- PostgreSQL — foydalanuvchilar va ta’lim ma’lumotlari.
+- Alembic — database migratsiyalari.
 - `docs` — loyiha va BMI texnik hujjatlari.
 - `.github/workflows` — CI tekshiruvlari.
 
-## Rejalashtirilgan asosiy imkoniyatlar
+## Hozir mavjud funksiyalar
+- Email/parol orqali ro‘yxatdan o‘tish va kirish.
+- JWT bearer access token.
+- Argon2 parol xeshlash.
+- Joriy foydalanuvchi profili va hisobdan chiqish.
+- Kurslar katalogi va filtrlash endpointlari.
+- Flutter login/register UI.
+- Android uchun secure storage orqali token saqlash.
 
-- Ro‘yxatdan o‘tish va autentifikatsiya
-- Boshlang‘ich bilim darajasini aniqlash
-- Shaxsiylashtirilgan o‘quv yo‘l xaritasi
-- Python, Dart, Flutter, JavaScript va boshqa kurslar
-- Darslar, testlar va amaliy topshiriqlar
-- AI Mentor: savol-javob va tushuntirishlar
-- Kodni tahlil qilish va xatolarni tushuntirish
-- Loyihalar laboratoriyasi
-- XP, streak, badge va yutuqlar
-- O‘quv jarayoni statistikasi
-- Administrator boshqaruv paneli
+## Backendni ishga tushirish
 
-## Ishga tushirish
+Python 3.11+, Docker va Docker Compose talab qilinadi.
 
-### Mobil ilova
-Flutter SDK 3.50+ va Dart 3.13+ talab qilinadi (material_ui va Google Fonts 9 migratsiyasi sabab). Repo hozircha platform-independent Flutter manba kodini saqlaydi; birinchi ishga tushirishdan avval platform runnerlarini yaratish kerak.
+```bash
+# Repository ildizida PostgreSQLni ishga tushiring
+docker compose up -d db
+
+cd services/api
+python -m venv .venv
+
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
+# macOS/Linux:
+# source .venv/bin/activate
+
+pip install -r requirements.txt
+# Windows PowerShell:
+Copy-Item .env.example .env
+# macOS/Linux:
+# cp .env.example .env
+
+alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+API hujjatlari: http://127.0.0.1:8000/docs
+
+Production muhitida `JWT_SECRET_KEY` qiymatini albatta tasodifiy, maxfiy va kamida 32 belgidan iborat qiymatga almashtiring. Haqiqiy `.env` faylini Git'ga joylamang.
+
+## Mobil ilovani ishga tushirish
+
+Flutter SDK 3.50+ va Dart 3.13+ talab qilinadi. Platform runnerlari hali repoga generatsiya qilinmagan; birinchi marta quyidagilarni bajaring:
 
 ```bash
 cd apps/mobile
-# Flutter platform runnerlarini birinchi marta yaratish:
 flutter create --platforms=android,ios,web,windows .
 flutter pub get
-flutter run
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
 ```
 
-### Backend
-Python 3.11+ talab qilinadi.
+`10.0.2.2` Android emulyatoridan kompyuterning localhost manziliga ulanish uchun ishlatiladi. Jismoniy Android qurilma uchun `API_BASE_URL` qiymatida kompyuterning lokal tarmoq IP manzilidan foydalaning. iOS Simulator/Web uchun mos localhost manzilini bering.
 
+## Testlar
+
+Backend:
 ```bash
 cd services/api
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# macOS/Linux:
-# source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+pytest -q
 ```
 
-API hujjatlari: `http://127.0.0.1:8000/docs`
+Mobil:
+```bash
+cd apps/mobile
+dart format lib test
+flutter analyze
+flutter test
+```
 
-## Muhim xavfsizlik eslatmasi
-Haqiqiy AI provayder kalitlari, ma’lumotlar bazasi parollari va boshqa maxfiy qiymatlarni Git repositoryga joylamang. `.env.example` faqat namuna qiymatlarni saqlaydi.
+## Xavfsizlik va keyingi bosqichlar
+- Email tasdiqlash, parolni tiklash va refresh-token rotation.
+- Rate limiting va brute-force himoyasi.
+- Kurs kontentini PostgreSQLga ko‘chirish.
+- AI Mentor va xavfsiz, alohida code-execution sandbox.
+- Learning progress, quiz, adaptive roadmap va gamification.
+- Admin panel va production deployment.
 
-## Holat
-Boshlang‘ich monorepo va arxitektura tayyorlanmoqda. Funksiyalar bosqichma-bosqich ishlab chiqiladi va testlar bilan mustahkamlanadi.
+Kod bajarish API jarayonida yoki mobil ilova ichida bajarilmaydi; alohida izolyatsiyalangan sandbox talab qilinadi.
