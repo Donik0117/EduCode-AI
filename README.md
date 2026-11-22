@@ -34,10 +34,12 @@ EduCode AI dasturlashni endi boshlayotgan va bilimini rivojlantirmoqchi bo‘lga
 ## Ishga tushirish
 
 ### Mobil ilova
-Flutter SDK 3.38+ va Dart 3.10+ talab qilinadi.
+Flutter SDK 3.38+ va Dart 3.10+ talab qilinadi. Repo hozircha platform-independent Flutter manba kodini saqlaydi; birinchi ishga tushirishdan avval platform runnerlarini yaratish kerak.
 
 ```bash
 cd apps/mobile
+# Flutter platform runnerlarini birinchi marta yaratish:
+flutter create --platforms=android,ios,web,windows .
 flutter pub get
 flutter run
 ```
