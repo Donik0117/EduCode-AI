@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../ai_mentor/presentation/ai_chat_screen.dart';
 import '../../courses/data/course_repository.dart';
 import '../../courses/data/models/course.dart';
 import '../../courses/presentation/course_detail_screen.dart';
@@ -145,9 +146,9 @@ class _DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 14),
                 FilledButton.tonalIcon(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('AI Mentor keyingi bosqichda ulanadi.'),
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AIChatScreen(),
                       ),
                     );
                   },
