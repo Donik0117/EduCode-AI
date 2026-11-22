@@ -1,3 +1,4 @@
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError
@@ -23,7 +24,7 @@ def get_current_user(
         raise unauthorized
 
     try:
-        payload = __import__("jwt").decode(
+        payload = jwt.decode(
             credentials.credentials,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
