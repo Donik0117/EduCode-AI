@@ -292,6 +292,9 @@ void main() {
       find.text('Natijangiz profilingizdagi o‘quv progressiga qo‘shildi.'),
       findsOneWidget,
     );
+    // Let the completion SnackBar disappear before interacting with lower controls.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
 
     await tester.pageBack();
     await tester.pumpAndSettle();
