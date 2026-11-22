@@ -3,8 +3,8 @@
 Flutter mobil ilovasi (Dart, Material 3, Riverpod).
 
 ## Talablar
-- Flutter stable
-- Dart SDK 3.10+
+- Flutter stable 3.50+
+- Dart SDK 3.13+
 - Android Studio yoki VS Code
 - Android SDK (Android qurilma/emulator uchun)
 
