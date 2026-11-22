@@ -21,11 +21,7 @@ abstract interface class AuthRepository {
 }
 
 class ApiAuthRepository implements AuthRepository {
-  ApiAuthRepository({
-    required Dio dio,
-    required FlutterSecureStorage storage,
-  })  : _dio = dio,
-        _storage = storage;
+  ApiAuthRepository(this._dio, this._storage);
 
   static const _tokenKey = 'educode_access_token';
 
