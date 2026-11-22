@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/application/auth_controller.dart';
+import '../../progress/data/progress_repository.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -136,11 +137,23 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _StatsCard extends StatelessWidget {
+class _StatsCard extends ConsumerWidget {
   const _StatsCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressState = ref.watch(myProgressProvider);
+    final lessonCount = progressState.when(
+      data: (summary) => summary.completedLessonCount.toString(),
+      loading: () => '…',
+      error: (error, stackTrace) => '—',
+    );
+    final courseCount = progressState.when(
+      data: (summary) => summary.completedCourseCount.toString(),
+      loading: () => '…',
+      error: (error, stackTrace) => '—',
+    );
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18),
       decoration: BoxDecoration(
@@ -148,11 +161,11 @@ class _StatsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF26314A)),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Expanded(child: _Stat(value: '0', label: 'Kurs')),
-          Expanded(child: _Stat(value: '0 XP', label: 'Tajriba')),
-          Expanded(child: _Stat(value: '0', label: 'Yutuq')),
+          Expanded(child: _Stat(value: lessonCount, label: 'Dars')),
+          Expanded(child: _Stat(value: courseCount, label: 'Kurs')),
+          const Expanded(child: _Stat(value: '—', label: 'Streak')),
         ],
       ),
     );
