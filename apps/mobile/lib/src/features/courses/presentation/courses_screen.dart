@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
@@ -66,7 +66,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Barcha kurslar', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-              Text(visibleCourses.length.toString() + ' ta kurs', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              Text('${visibleCourses.length} ta kurs', style: const TextStyle(color: Colors.white60, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 12),
@@ -139,7 +139,7 @@ class _CourseCard extends StatelessWidget {
               spacing: 8,
               children: [
                 _Pill(course.level),
-                _Pill(course.lessons.toString() + ' dars'),
+                _Pill('${course.lessons} dars'),
               ],
             ),
           ],
