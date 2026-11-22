@@ -16,6 +16,10 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://localhost:7357",
     ]
+    ai_api_key: str | None = None
+    ai_base_url: str = "https://api.openai.com/v1"
+    ai_model: str | None = None
+    ai_timeout_seconds: int = Field(default=45, ge=5, le=120)
 
     model_config = SettingsConfigDict(
         env_file=".env",
