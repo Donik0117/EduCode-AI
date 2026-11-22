@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PracticeScreen extends StatelessWidget {
   const PracticeScreen({super.key});
@@ -57,8 +57,8 @@ class PracticeScreen extends StatelessWidget {
                     child: Icon(task.icon, color: const Color(0xFFA69EFF)),
                   ),
                   title: Text(task.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-                  subtitle: Text(task.language + ' • ' + task.difficulty, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                  trailing: Text('+' + task.xp.toString() + ' XP', style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w700, fontSize: 12)),
+                  subtitle: Text('${task.language} • ${task.difficulty}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                  trailing: Text('+${task.xp} XP', style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.w700, fontSize: 12)),
                   onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Kod muharriri keyingi bosqichda ulanadi.')),
                   ),
