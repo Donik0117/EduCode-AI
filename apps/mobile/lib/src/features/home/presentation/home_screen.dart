@@ -1,8 +1,13 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../courses/data/course_repository.dart';
+import '../../courses/data/models/course.dart';
+import '../../courses/presentation/course_detail_screen.dart';
 import '../../courses/presentation/courses_screen.dart';
 import '../../practice/presentation/practice_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../progress/data/progress_repository.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -79,11 +84,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _DashboardScreen extends StatelessWidget {
+class _DashboardScreen extends ConsumerWidget {
   const _DashboardScreen();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(20),
@@ -106,22 +111,14 @@ class _DashboardScreen extends StatelessWidget {
           const SizedBox(height: 26),
           const Text(
             'O‘rganishni davom ettiring',
-            style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 12),
-          const _ProgressCourse(
-            icon: Icons.terminal_rounded,
-            title: 'Python dasturlash',
-            subtitle: 'Dasturlash asoslari • Beginner',
-            progress: 0.32,
-          ),
-          const SizedBox(height: 12),
-          const _ProgressCourse(
-            icon: Icons.phone_android_rounded,
-            title: 'Flutter UI asoslari',
-            subtitle: 'Mobil dasturlash • Beginner',
-            progress: 0.12,
-          ),
+          const _RecommendedCourses(),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(20),
@@ -166,11 +163,23 @@ class _DashboardScreen extends StatelessWidget {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
+class _SummaryCard extends ConsumerWidget {
   const _SummaryCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressState = ref.watch(myProgressProvider);
+    final completedLessons = progressState.when(
+      data: (summary) => summary.completedLessonCount.toString(),
+      loading: () => '…',
+      error: (error, stackTrace) => '—',
+    );
+    final completedCourses = progressState.when(
+      data: (summary) => summary.completedCourseCount.toString(),
+      loading: () => '…',
+      error: (error, stackTrace) => '—',
+    );
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
@@ -178,30 +187,30 @@ class _SummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFF26314A)),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Expanded(
             child: _Metric(
+              icon: Icons.menu_book_rounded,
+              value: completedLessons,
+              label: 'Tugallangan dars',
+              color: const Color(0xFF72D6B2),
+            ),
+          ),
+          Expanded(
+            child: _Metric(
+              icon: Icons.school_rounded,
+              value: completedCourses,
+              label: 'Tugallangan kurs',
+              color: const Color(0xFFFFD166),
+            ),
+          ),
+          const Expanded(
+            child: _Metric(
               icon: Icons.local_fire_department_rounded,
-              value: '0 kun',
+              value: '—',
               label: 'Streak',
               color: Color(0xFFFFA45B),
-            ),
-          ),
-          Expanded(
-            child: _Metric(
-              icon: Icons.bolt_rounded,
-              value: '0 XP',
-              label: 'Tajriba',
-              color: Color(0xFFFFD166),
-            ),
-          ),
-          Expanded(
-            child: _Metric(
-              icon: Icons.track_changes_rounded,
-              value: '0%',
-              label: 'Progress',
-              color: Color(0xFF72D6B2),
             ),
           ),
         ],
@@ -229,67 +238,142 @@ class _Metric extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 24),
         const SizedBox(height: 8),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 3),
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white60, fontSize: 11),
+        ),
       ],
     );
   }
 }
 
-class _ProgressCourse extends StatelessWidget {
-  const _ProgressCourse({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.progress,
-  });
+class _RecommendedCourses extends ConsumerWidget {
+  const _RecommendedCourses();
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final double progress;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coursesState = ref.watch(coursesProvider);
+
+    return coursesState.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stackTrace) => Card(
+        child: ListTile(
+          leading: const Icon(Icons.cloud_off_rounded, color: Colors.white60),
+          title: const Text(
+            'Kurslarni yuklab bo‘lmadi',
+            style: TextStyle(color: Colors.white),
+          ),
+          subtitle: const Text(
+            'Internet va server aloqasini tekshiring.',
+            style: TextStyle(color: Colors.white60),
+          ),
+          trailing: IconButton(
+            onPressed: () => ref.invalidate(coursesProvider),
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ),
+      ),
+      data: (courses) {
+        if (courses.isEmpty) {
+          return const Card(
+            child: Padding(
+              padding: EdgeInsets.all(18),
+              child: Text(
+                'Hozircha kurslar mavjud emas.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+          );
+        }
+
+        final recommended = courses.take(2).toList(growable: false);
+        return Column(
+          children: recommended
+              .map(
+                (course) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _RecommendedCourseCard(course: course),
+                ),
+              )
+              .toList(growable: false),
+        );
+      },
+    );
+  }
+}
+
+class _RecommendedCourseCard extends StatelessWidget {
+  const _RecommendedCourseCard({required this.course});
+
+  final Course course;
 
   @override
   Widget build(BuildContext context) {
+    final icon = switch (course.language.toLowerCase()) {
+      'python' => Icons.terminal_rounded,
+      'dart' => Icons.flutter_dash_rounded,
+      'javascript' => Icons.javascript_rounded,
+      'sql' => Icons.storage_rounded,
+      'c++' => Icons.account_tree_rounded,
+      _ => Icons.code_rounded,
+    };
+
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: const Color(0xFFA69EFF), size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ],
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => CourseDetailScreen(course: course),
             ),
-            const SizedBox(height: 14),
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 7,
-              borderRadius: BorderRadius.circular(10),
-              backgroundColor: const Color(0xFF303A52),
-              color: const Color(0xFF8D82FF),
-            ),
-            const SizedBox(height: 7),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${(progress * 100).round()}% yakunlandi',
-                style: const TextStyle(color: Colors.white60, fontSize: 11),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: const Color(0xFF695CFF).withValues(alpha: 0.18),
+                child: Icon(icon, color: const Color(0xFFA69EFF)),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${course.levelLabel} • ${course.lessonsCount} dars',
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+            ],
+          ),
         ),
       ),
     );
