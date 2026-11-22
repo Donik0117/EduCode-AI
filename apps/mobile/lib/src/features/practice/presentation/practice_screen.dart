@@ -219,17 +219,17 @@ class _ComingSoonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: ListTile(
-        leading: const Icon(
+        leading: Icon(
           Icons.code_rounded,
           color: Color(0xFF72D6B2),
         ),
-        title: const Text(
+        title: Text(
           'Coding Lab',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
         ),
-        subtitle: const Text(
+        subtitle: Text(
           'Kod muharriri va avtomatik tekshiruvchi keyingi bosqichda ulanadi.',
           style: TextStyle(color: Colors.white60, fontSize: 12),
         ),
