@@ -1,113 +1,209 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CoursesScreen extends StatefulWidget {
+import '../data/course_repository.dart';
+import '../data/models/course.dart';
+
+class CoursesScreen extends ConsumerStatefulWidget {
   const CoursesScreen({super.key});
 
   @override
-  State<CoursesScreen> createState() => _CoursesScreenState();
+  ConsumerState<CoursesScreen> createState() => _CoursesScreenState();
 }
 
-class _CoursesScreenState extends State<CoursesScreen> {
+class _CoursesScreenState extends ConsumerState<CoursesScreen> {
   String _query = '';
-  String _level = 'Barchasi';
-
-  static const _courses = [
-    _Course('Python dasturlash', 'Backend va algoritmlar', 'Beginner', 36, Icons.terminal_rounded, Color(0xFF6FA8FF)),
-    _Course('Dart dasturlash', 'Mobil dasturlash', 'Beginner', 28, Icons.flutter_dash_rounded, Color(0xFF55B8E8)),
-    _Course('Flutter', 'Mobil dasturlash', 'Intermediate', 42, Icons.phone_android_rounded, Color(0xFF72D6B2)),
-    _Course('JavaScript', 'Web dasturlash', 'Beginner', 40, Icons.javascript_rounded, Color(0xFFFFD166)),
-    _Course('SQL va ma’lumotlar bazasi', 'Database', 'Intermediate', 30, Icons.storage_rounded, Color(0xFFFFA45B)),
-    _Course('C++ algoritmlar', 'Algoritmlar', 'Advanced', 34, Icons.account_tree_rounded, Color(0xFFB69CFF)),
-  ];
+  String _selectedLevel = 'Barchasi';
 
   @override
   Widget build(BuildContext context) {
-    final visibleCourses = _courses.where((course) {
-      final matchesText = course.title.toLowerCase().contains(_query.toLowerCase()) ||
-          course.category.toLowerCase().contains(_query.toLowerCase());
-      final matchesLevel = _level == 'Barchasi' || course.level == _level;
-      return matchesText && matchesLevel;
-    }).toList();
+    final coursesState = ref.watch(coursesProvider);
 
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const Text(
-            'Bilimingizni keyingi bosqichga olib chiqing',
-            style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          const Text('Yo‘nalishingizni tanlang va o‘rganishni boshlang.', style: TextStyle(color: Colors.white60)),
-          const SizedBox(height: 20),
-          TextField(
-            onChanged: (value) => setState(() => _query = value),
-            decoration: InputDecoration(
-              hintText: 'Kurs qidirish...',
-              prefixIcon: const Icon(Icons.search_rounded),
-              filled: true,
-              fillColor: const Color(0xFF151C30),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            children: ['Barchasi', 'Beginner', 'Intermediate', 'Advanced']
-                .map((level) => ChoiceChip(
-                      label: Text(level),
-                      selected: _level == level,
-                      onSelected: (_) => setState(() => _level = level),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: coursesState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) => _CoursesError(
+          onRetry: () => ref.invalidate(coursesProvider),
+        ),
+        data: (courses) {
+          final visibleCourses = courses.where((course) {
+            final query = _query.trim().toLowerCase();
+            final matchesQuery = query.isEmpty ||
+                course.title.toLowerCase().contains(query) ||
+                course.category.toLowerCase().contains(query) ||
+                course.language.toLowerCase().contains(query);
+            final matchesLevel = _selectedLevel == 'Barchasi' ||
+                course.levelLabel == _selectedLevel;
+            return matchesQuery && matchesLevel;
+          }).toList(growable: false);
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             children: [
-              const Text('Barcha kurslar', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-              Text('${visibleCourses.length} ta kurs', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              const Text(
+                'Bilimingizni keyingi bosqichga olib chiqing',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 23,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Yo‘nalishingizni tanlang va o‘rganishni boshlang.',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.62)),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                onChanged: (value) => setState(() => _query = value),
+                decoration: InputDecoration(
+                  hintText: 'Kurs qidirish...',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  filled: true,
+                  fillColor: const Color(0xFF151C30),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                children: [
+                  'Barchasi',
+                  'Beginner',
+                  'Intermediate',
+                  'Advanced',
+                ]
+                    .map(
+                      (level) => ChoiceChip(
+                        label: Text(level),
+                        selected: _selectedLevel == level,
+                        onSelected: (_) =>
+                            setState(() => _selectedLevel = level),
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Barcha kurslar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    '${visibleCourses.length} ta kurs',
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (visibleCourses.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(30),
+                  child: Center(
+                    child: Text(
+                      'Mos kurs topilmadi.',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                )
+              else
+                ...visibleCourses.map(
+                  (course) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _CourseCard(course: course),
+                  ),
+                ),
             ],
-          ),
-          const SizedBox(height: 12),
-          if (visibleCourses.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(30),
-              child: Center(child: Text('Mos kurs topilmadi.', style: TextStyle(color: Colors.white70))),
-            )
-          else
-            ...visibleCourses.map((course) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _CourseCard(course: course),
-                )),
-          const Text(
-            'Kurslar hozircha namuna ma’lumotlari bilan ko‘rsatilgan.',
-            style: TextStyle(color: Colors.white38, fontSize: 11),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-class _Course {
-  const _Course(this.title, this.category, this.level, this.lessons, this.icon, this.color);
+class _CoursesError extends StatelessWidget {
+  const _CoursesError({required this.onRetry});
 
-  final String title;
-  final String category;
-  final String level;
-  final int lessons;
-  final IconData icon;
-  final Color color;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_rounded,
+              color: Colors.white54,
+              size: 40,
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Kurslarni yuklab bo‘lmadi',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Backend server ishlayotganini va API manzilini tekshiring.',
+              style: TextStyle(color: Colors.white60),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Qayta yuklash'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _CourseCard extends StatelessWidget {
   const _CourseCard({required this.course});
 
-  final _Course course;
+  final Course course;
 
   @override
   Widget build(BuildContext context) {
+    final icon = switch (course.language.toLowerCase()) {
+      'python' => Icons.terminal_rounded,
+      'dart' => Icons.flutter_dash_rounded,
+      'javascript' => Icons.javascript_rounded,
+      'sql' => Icons.storage_rounded,
+      'c++' => Icons.account_tree_rounded,
+      _ => Icons.code_rounded,
+    };
+    final color = switch (course.language.toLowerCase()) {
+      'python' => const Color(0xFF6FA8FF),
+      'dart' => const Color(0xFF55B8E8),
+      'javascript' => const Color(0xFFFFD166),
+      'sql' => const Color(0xFFFFA45B),
+      'c++' => const Color(0xFFB69CFF),
+      _ => const Color(0xFF72D6B2),
+    };
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -117,29 +213,54 @@ class _CourseCard extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: course.color.withValues(alpha: 0.14),
-                  child: Icon(course.icon, color: course.color),
+                  backgroundColor: color.withValues(alpha: 0.14),
+                  child: Icon(icon, color: color),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(course.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      Text(
+                        course.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(course.category, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      Text(
+                        course.category,
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white54,
+                ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              course.description,
+              style: const TextStyle(
+                color: Colors.white70,
+                height: 1.4,
+                fontSize: 12,
+              ),
             ),
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,
               children: [
-                _Pill(course.level),
-                _Pill('${course.lessons} dars'),
+                _InfoPill(course.levelLabel),
+                _InfoPill('${course.lessonsCount} dars'),
+                _InfoPill('${course.estimatedHours} soat'),
               ],
             ),
           ],
@@ -149,18 +270,24 @@ class _CourseCard extends StatelessWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill(this.label);
+class _InfoPill extends StatelessWidget {
+  const _InfoPill(this.label);
 
   final String label;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(color: const Color(0xFF27314A), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF27314A),
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
+        ),
       ),
     );
   }
