@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../auth/application/auth_controller.dart';
 import 'models/learning_progress.dart';
 
@@ -11,11 +12,7 @@ abstract interface class ProgressRepository {
 }
 
 class ApiProgressRepository implements ProgressRepository {
-  ApiProgressRepository({
-    required Dio dio,
-    required Future<String?> Function() readAccessToken,
-  })  : _dio = dio,
-        _readAccessToken = readAccessToken;
+  ApiProgressRepository(this._dio, this._readAccessToken);
 
   final Dio _dio;
   final Future<String?> Function() _readAccessToken;
@@ -61,8 +58,8 @@ final progressRepositoryProvider = Provider<ProgressRepository>((ref) {
   final dio = ref.watch(dioProvider);
   final storage = ref.watch(secureStorageProvider);
   return ApiProgressRepository(
-    dio: dio,
-    readAccessToken: () => storage.read(key: 'educode_access_token'),
+    dio,
+    () => storage.read(key: 'educode_access_token'),
   );
 });
 
