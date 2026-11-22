@@ -19,7 +19,8 @@
 - [x] Kurslar katalogi
 - [x] Kurs tafsiloti va modullar
 - [x] Dars ko‘rish
-- [ ] Quiz va practice topshiriqlarini serverga ulash
+- [x] Quiz savollarini serverga ulash va natijalarni baholash
+- [ ] Kod yozish practice topshiriqlarini serverga ulash
 - [x] Dars progressini saqlash
 - [ ] O‘quv progressi dashboard statistikasi
 
@@ -29,6 +30,7 @@
 - [x] JWT auth va Argon2
 - [x] Kurs/modul/dars API
 - [x] Progress API
+- [x] Quiz va quiz-attempt API
 - [ ] Refresh-token, email verification va password reset
 - [ ] Rate limiting va account lockout
 
@@ -45,6 +47,7 @@
 - [x] Backend unit/API testlari
 - [x] Flutter widget testlari (boshlang‘ich)
 - [x] CI pipeline
+- [x] Quiz va progress uchun backend integration testlari
 - [ ] Integration testlarni kengaytirish
 - [ ] Accessibility va localization
 - [ ] Admin panel
