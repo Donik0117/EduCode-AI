@@ -10,7 +10,7 @@ void main() {
 
     expect(find.text('EduCode AI'), findsOneWidget);
     expect(find.text('Xush kelibsiz! 👋'), findsOneWidget);
-    expect(find.text('AI Mentor'), findsOneWidget);
+    expect(find.text('Tushunmagan mavzuingiz bormi?'), findsOneWidget);
     expect(find.text('Python dasturlash'), findsOneWidget);
   });
 }
