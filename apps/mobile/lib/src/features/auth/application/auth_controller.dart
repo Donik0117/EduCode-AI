@@ -38,15 +38,15 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     required String email,
     required String password,
   }) async {
-    state = const AsyncLoading();
     try {
       final user = await ref.read(authRepositoryProvider).signIn(
             email: email,
             password: password,
           );
       state = AsyncData(user);
-    } catch (error, stackTrace) {
-      state = AsyncError(error, stackTrace);
+    } catch (_) {
+      state = const AsyncData(null);
+      rethrow;
     }
   }
 
@@ -55,7 +55,6 @@ class AuthController extends AsyncNotifier<AuthUser?> {
     required String password,
     required String fullName,
   }) async {
-    state = const AsyncLoading();
     try {
       final user = await ref.read(authRepositoryProvider).signUp(
             email: email,
@@ -63,8 +62,9 @@ class AuthController extends AsyncNotifier<AuthUser?> {
             fullName: fullName,
           );
       state = AsyncData(user);
-    } catch (error, stackTrace) {
-      state = AsyncError(error, stackTrace);
+    } catch (_) {
+      state = const AsyncData(null);
+      rethrow;
     }
   }
 
