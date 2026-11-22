@@ -14,6 +14,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8080",
         "http://localhost:5173",
+        "http://localhost:7357",
     ]
 
     model_config = SettingsConfigDict(
@@ -27,7 +28,9 @@ class Settings(BaseSettings):
         if self.app_env == "production":
             if len(self.jwt_secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must contain at least 32 characters")
-            if self.jwt_secret_key.startswith("local-development"):
+            if self.jwt_secret_key.startswith(
+                ("local-development", "replace-", "changeme")
+            ):
                 raise ValueError("Set a unique JWT_SECRET_KEY in production")
         return self
 
