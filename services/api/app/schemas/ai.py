@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class AIChatRequest(BaseModel):
@@ -10,6 +10,14 @@ class AIChatRequest(BaseModel):
     course_context: str | None = Field(default=None, max_length=160)
     lesson_context: str | None = Field(default=None, max_length=3000)
     programming_language: str | None = Field(default=None, max_length=40)
+
+    @field_validator("message")
+    @classmethod
+    def validate_non_blank_message(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Message cannot be blank")
+        return cleaned
 
 
 class AIChatResponse(BaseModel):
@@ -20,6 +28,8 @@ class AIChatResponse(BaseModel):
 
 
 class AIMessageRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     role: Literal["user", "assistant"]
     content: str
@@ -27,6 +37,8 @@ class AIMessageRead(BaseModel):
 
 
 class AIConversationSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
     created_at: datetime
