@@ -1,6 +1,6 @@
 # EduCode AI API
 
-FastAPI backend: course catalog and student authentication.
+FastAPI backend: authentication, course content and student learning progress.
 
 ## Stack
 - FastAPI + Pydantic
@@ -22,30 +22,49 @@ Then from this directory:
 
 ```bash
 python -m venv .venv
-# Windows:
-.venv\\Scripts\\activate
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
 # macOS/Linux:
 # source .venv/bin/activate
 pip install -r requirements.txt
-copy .env.example .env
+# Windows PowerShell:
+Copy-Item .env.example .env
+# macOS/Linux:
+# cp .env.example .env
+
 alembic upgrade head
-uvicorn app.main:app --reload
+python -m app.seed
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-API documentation: http://127.0.0.1:8000/docs
+OpenAPI documentation: http://127.0.0.1:8000/docs
+
+`python -m app.seed` inserts six starter courses, their first modules and twelve starter lessons. It is safe to run again; if the catalog already has data, it does not insert duplicates.
 
 ## Authentication endpoints
 
-- `POST /api/v1/auth/register` — create a student account and receive an access token.
-- `POST /api/v1/auth/login` — validate credentials and receive an access token.
-- `GET /api/v1/auth/me` — return the authenticated user's profile (Bearer token required).
+All authentication routes use JSON.
 
-Registration and login accept JSON bodies with `email` and `password`. Registration also accepts an optional `full_name`.
+- `POST /api/v1/auth/register` — create a student account and return an access token.
+- `POST /api/v1/auth/login` — verify credentials and return an access token.
+- `GET /api/v1/auth/me` — return the authenticated user's profile.
 
-## Course endpoints
+Registration accepts `email`, `password` and optional `full_name`. Passwords must contain at least eight characters. Password hashes are not returned by the API.
 
-- `GET /api/v1/courses` — list courses; optional `level` and `search` filters.
-- `GET /api/v1/courses/{course_id}` — retrieve a course by ID or slug.
+## Course and lesson endpoints
+
+- `GET /api/v1/courses` — list published courses. Optional filters: `level`, `search`.
+- `GET /api/v1/courses/{course_id}` — retrieve a course by UUID or slug.
+- `GET /api/v1/courses/{course_id}/modules` — retrieve the course modules.
+- `GET /api/v1/courses/modules/{module_id}/lessons` — retrieve module lessons.
+- `GET /api/v1/courses/lessons/{lesson_id}` — retrieve full lesson text and code example.
+
+## Learning progress endpoints
+
+These routes require a Bearer access token.
+
+- `POST /api/v1/progress/lessons/{lesson_id}/complete` — mark a published lesson as completed. The operation is idempotent.
+- `GET /api/v1/progress/me` — return completed lesson IDs, completed lesson count and fully completed course count for the current user.
 
 ## Tests
 
@@ -54,12 +73,12 @@ pip install pytest httpx
 pytest -q
 ```
 
-Tests use an isolated in-memory SQLite database. They do not connect to the local PostgreSQL instance.
+Tests use an isolated in-memory SQLite database, create all SQLAlchemy models and seed the starter learning catalog. They do not connect to the local PostgreSQL instance.
 
 ## Security notes
 
 - Never commit a real `.env` file or production secret.
 - Set a unique random `JWT_SECRET_KEY` (at least 32 characters) for production.
 - Use HTTPS in deployed environments.
-- Access tokens are currently bearer JWTs; refresh-token rotation, email verification, password reset, rate limiting, and account lockout remain planned work.
+- Current access tokens are bearer JWTs. Refresh-token rotation, email verification, password reset, rate limiting and account lockout remain planned work.
 - Code execution must run in a separately isolated sandbox service, not inside the API process.
