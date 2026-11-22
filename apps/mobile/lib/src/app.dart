@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'features/home/presentation/home_screen.dart';
+import 'features/auth/presentation/auth_gate.dart';
 
 class EduCodeApp extends StatelessWidget {
   const EduCodeApp({super.key});
@@ -38,7 +38,7 @@ class EduCodeApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
+      home: const AuthGate(),
     );
   }
 }
