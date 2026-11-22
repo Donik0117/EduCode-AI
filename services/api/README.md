@@ -39,7 +39,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 OpenAPI documentation: http://127.0.0.1:8000/docs
 
-`python -m app.seed` inserts six starter courses, their first modules and twelve starter lessons. It is safe to run again; if the catalog already has data, it does not insert duplicates.
+`python -m app.seed` inserts six starter courses, their first modules, twelve starter lessons and a Python fundamentals quiz with three questions. It is safe to run again; existing catalog and quiz data are not duplicated.
 
 ## Authentication endpoints
 
@@ -58,6 +58,15 @@ Registration accepts `email`, `password` and optional `full_name`. Passwords mus
 - `GET /api/v1/courses/{course_id}/modules` — retrieve the course modules.
 - `GET /api/v1/courses/modules/{module_id}/lessons` — retrieve module lessons.
 - `GET /api/v1/courses/lessons/{lesson_id}` — retrieve full lesson text and code example.
+
+## Quiz endpoints
+
+- `GET /api/v1/quizzes` — list published quizzes.
+- `GET /api/v1/quizzes/{quiz_id}` — return quiz questions and answer options without revealing correct answers.
+- `POST /api/v1/quizzes/{quiz_id}/submit` — submit answers; the server grades them and returns explanations and the score. Authentication required.
+- `GET /api/v1/quizzes/me/attempts` — return the current user's previous quiz attempts. Authentication required.
+
+Correct answers are never included in the quiz detail endpoint; they are returned only after submission.
 
 ## Learning progress endpoints
 
