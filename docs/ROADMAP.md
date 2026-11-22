@@ -4,28 +4,33 @@
 - [x] Repository va boshlang‘ich hujjatlar
 - [x] Mobil/backend papka tuzilmasi
 - [x] CI workflow
-- [ ] Mahalliy Flutter va Python muhitida build/test
+- [x] Backend testlari
+- [ ] Mahalliy Flutter va Android qurilmada build/run
 
 ## Phase 1 — UX va mobil asos
-- [ ] Design tokens va theme
+- [x] Material 3 design theme
 - [ ] Splash va onboarding
-- [ ] Login/register UI
-- [ ] Asosiy navigatsiya
-- [ ] Home dashboard
+- [x] Login/register UI
+- [x] Asosiy navigatsiya
+- [x] Home dashboard
+- [x] Profil va hisobdan chiqish
 
 ## Phase 2 — Ta’lim moduli
-- [ ] Kurslar katalogi
-- [ ] Kurs tafsiloti va modullar
-- [ ] Dars ko‘rish
-- [ ] Quiz va practice
-- [ ] Progress saqlash
+- [x] Kurslar katalogi
+- [x] Kurs tafsiloti va modullar
+- [x] Dars ko‘rish
+- [ ] Quiz va practice topshiriqlarini serverga ulash
+- [x] Dars progressini saqlash
+- [ ] O‘quv progressi dashboard statistikasi
 
 ## Phase 3 — Backend
-- [ ] PostgreSQL
-- [ ] SQLAlchemy modellari va Alembic
-- [ ] JWT auth
-- [ ] Kurs/dars API
-- [ ] Progress API
+- [x] PostgreSQL konfiguratsiyasi
+- [x] SQLAlchemy modellari va Alembic
+- [x] JWT auth va Argon2
+- [x] Kurs/modul/dars API
+- [x] Progress API
+- [ ] Refresh-token, email verification va password reset
+- [ ] Rate limiting va account lockout
 
 ## Phase 4 — AI
 - [ ] AI provider adapter
@@ -34,10 +39,16 @@
 - [ ] Debugging Assistant
 - [ ] Roadmap Generator
 - [ ] AI javoblari uchun xavfsizlik va rate limit
+- [ ] Shaxsiylashtirilgan o‘quv tavsiyalari
 
 ## Phase 5 — Sifat va chiqarish
-- [ ] Unit/widget/integration testlar
-- [ ] API testlari
-- [ ] CI build
+- [x] Backend unit/API testlari
+- [x] Flutter widget testlari (boshlang‘ich)
+- [x] CI pipeline
+- [ ] Integration testlarni kengaytirish
 - [ ] Accessibility va localization
-- [ ] Release hujjatlari
+- [ ] Admin panel
+- [ ] Production release va Play Market tayyorgarligi
+
+## Keyingi texnik vazifa
+Quiz va amaliy topshiriqlarni backendga ko‘chirish, natijalarni saqlash va AI Mentor bilan bog‘lash.
