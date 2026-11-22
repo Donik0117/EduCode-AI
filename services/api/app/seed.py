@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.course import CourseModel, LessonModel, ModuleModel
+from app.models.quiz import QuizModel, QuizQuestionModel
 
 
 CATALOG = [
@@ -231,10 +232,13 @@ if berilgan ifodani tekshiradi. Shart rost bo‘lsa birinchi blok, aks holda els
 ]
 
 
-def seed_learning_content(db: Session) -> int:
+def seed_learning_content(db: Session) -> tuple[int, int]:
     already_seeded = db.scalar(select(CourseModel.id).limit(1))
     if already_seeded is not None:
-        return 0
+        quiz_question_count = seed_quizzes(db)
+        if quiz_question_count:
+            db.commit()
+        return 0, quiz_question_count
 
     lesson_count = 0
     for item in CATALOG:
@@ -281,10 +285,74 @@ def seed_learning_content(db: Session) -> int:
             lesson_count += 1
 
     db.commit()
-    return lesson_count
+    quiz_question_count = seed_quizzes(db)
+    if quiz_question_count:
+        db.commit()
+    return lesson_count, quiz_question_count
+
+
+def seed_quizzes(db: Session) -> int:
+    if db.scalar(select(QuizModel.id).limit(1)) is not None:
+        return 0
+
+    quiz = QuizModel(
+        id="quiz-python-basics",
+        module_id="module-python-core",
+        title="Python asoslari: bilimni tekshirish",
+        description="O‘zgaruvchilar, ma’lumot turlari va shart operatorlari bo‘yicha qisqa test.",
+        duration_minutes=5,
+        position=1,
+        is_published=True,
+    )
+    db.add(quiz)
+    db.flush()
+
+    questions = [
+        {
+            "id": "quiz-python-q1",
+            "prompt": "Python’da butun sonni saqlash uchun qaysi ma’lumot turi ishlatiladi?",
+            "options": ["str", "int", "float", "bool"],
+            "correct_answer": "int",
+            "explanation": "int — Python’dagi butun sonlar uchun ishlatiladigan ma’lumot turi.",
+        },
+        {
+            "id": "quiz-python-q2",
+            "prompt": "Quyidagi qiymatlardan qaysi biri bool turiga tegishli?",
+            "options": ["'True'", "1", "True", "1.0"],
+            "correct_answer": "True",
+            "explanation": "True — qo‘shtirnoqsiz yoziladigan mantiqiy qiymat.",
+        },
+        {
+            "id": "quiz-python-q3",
+            "prompt": "Python’da shartni tekshirish uchun qaysi kalit so‘z ishlatiladi?",
+            "options": ["for", "def", "if", "import"],
+            "correct_answer": "if",
+            "explanation": "if operatori shart rost yoki yolg‘onligini tekshiradi.",
+        },
+    ]
+
+    for position, item in enumerate(questions, start=1):
+        db.add(
+            QuizQuestionModel(
+                id=item["id"],
+                quiz_id=quiz.id,
+                prompt=item["prompt"],
+                options=item["options"],
+                correct_answer=item["correct_answer"],
+                explanation=item["explanation"],
+                points=1,
+                position=position,
+                is_published=True,
+            )
+        )
+
+    return len(questions)
 
 
 if __name__ == "__main__":
     with SessionLocal() as session:
-        seeded = seed_learning_content(session)
-    print(f"Seeded {len(CATALOG)} courses and {seeded} lessons.")
+        seeded_lessons, seeded_quiz_questions = seed_learning_content(session)
+    print(
+        f"Seeded {len(CATALOG)} courses, {seeded_lessons} lessons and "
+        f"{seeded_quiz_questions} quiz questions."
+    )
