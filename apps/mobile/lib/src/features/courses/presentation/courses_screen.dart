@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/course_repository.dart';
 import '../data/models/course.dart';
+import 'course_detail_screen.dart';
 
 class CoursesScreen extends ConsumerStatefulWidget {
   const CoursesScreen({super.key});
@@ -205,8 +206,17 @@ class _CourseCard extends StatelessWidget {
     };
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => CourseDetailScreen(course: course),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -264,6 +274,7 @@ class _CourseCard extends StatelessWidget {
               ],
             ),
           ],
+        ),
         ),
       ),
     );
