@@ -10,8 +10,6 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
 );
 
-final dioProvider = Provider<Dio>((ref) => createApiClient());
-
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => ApiAuthRepository(
     dio: ref.watch(dioProvider),
