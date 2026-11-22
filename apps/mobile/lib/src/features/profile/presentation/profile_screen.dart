@@ -8,7 +8,11 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authControllerProvider).valueOrNull;
+    final user = ref.watch(authControllerProvider).when(
+      data: (value) => value,
+      loading: () => null,
+      error: (error, stackTrace) => null,
+    );
     final displayName = user?.fullName?.isNotEmpty == true
         ? user!.fullName!
         : user?.email ?? 'O‘quvchi';
