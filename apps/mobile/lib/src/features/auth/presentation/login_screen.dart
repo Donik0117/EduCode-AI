@@ -18,6 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isRegistering = false;
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -28,28 +29,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate() || _isSubmitting) return;
 
-    final controller = ref.read(authControllerProvider.notifier);
-    if (_isRegistering) {
-      await controller.signUp(
-        email: _emailController.text,
-        password: _passwordController.text,
-        fullName: _nameController.text,
-      );
-    } else {
-      await controller.signIn(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-    }
-
-    if (!mounted) return;
-    final authState = ref.read(authControllerProvider);
-    if (authState.hasError) {
+    setState(() => _isSubmitting = true);
+    try {
+      final controller = ref.read(authControllerProvider.notifier);
+      if (_isRegistering) {
+        await controller.signUp(
+          email: _emailController.text,
+          password: _passwordController.text,
+          fullName: _nameController.text,
+        );
+      } else {
+        await controller.signIn(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_errorMessage(authState.error!))),
+        SnackBar(content: Text(_errorMessage(error))),
       );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -71,7 +74,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final isLoading = authState.isLoading;
+    final isLoading = _isSubmitting || authState.isLoading;
 
     return Scaffold(
       body: SafeArea(
