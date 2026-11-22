@@ -25,6 +25,7 @@ Sun’iy intellekt texnologiyalari asosida dasturlashni o‘rgatishga mo‘ljall
 - Kurs modullari va darslarini ochish.
 - Dars matni va kod misollarini ko‘rish.
 - Darsni tugatish va progressni serverga saqlash.
+- Testlarni yechish, natija va har bir savol bo‘yicha izohlarni ko‘rish.
 - Profil va hisobdan chiqish.
 
 ### Backend
@@ -34,6 +35,7 @@ Sun’iy intellekt texnologiyalari asosida dasturlashni o‘rgatishga mo‘ljall
 - Olti namuna kurs va o‘n ikki boshlang‘ich dars.
 - Kurslar, modullar va darslar API.
 - Darsni yakunlash va foydalanuvchi progressini ko‘rish API.
+- Testlar katalogi, topshirish, serverda baholash va natijalarni saqlash API.
 
 ## Backendni ishga tushirish
 
@@ -92,6 +94,10 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
 - `GET /api/v1/courses/lessons/{lesson_id}`
 - `POST /api/v1/progress/lessons/{lesson_id}/complete`
 - `GET /api/v1/progress/me`
+- `GET /api/v1/quizzes`
+- `GET /api/v1/quizzes/{quiz_id}`
+- `POST /api/v1/quizzes/{quiz_id}/submit`
+- `GET /api/v1/quizzes/me/attempts`
 
 Autentifikatsiya talab qiladigan endpointlar uchun `Authorization: Bearer <access_token>` sarlavhasidan foydalaniladi.
 
@@ -117,7 +123,7 @@ Backend GitHub Actions testlari muvaffaqiyatli o‘tgan. Mobil CI yangi lesson-p
 - Email tasdiqlash, parolni tiklash va refresh-token rotation.
 - Rate limiting va brute-force himoyasi.
 - AI Mentor, kod tahlili va xavfsiz alohida code-execution sandbox.
-- Quiz, adaptiv o‘quv yo‘l xaritasi va gamification.
+- Adaptiv o‘quv yo‘l xaritasi va gamification.
 - Admin panel, accessibility, localization va production release.
 
 Kod bajarish API jarayonida yoki mobil ilova ichida bajarilmaydi; alohida izolyatsiyalangan sandbox talab qilinadi.
