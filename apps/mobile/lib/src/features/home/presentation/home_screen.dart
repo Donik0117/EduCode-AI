@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../courses/presentation/courses_screen.dart';
 import '../../practice/presentation/practice_screen.dart';
@@ -285,7 +285,7 @@ class _ProgressCourse extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                (progress * 100).round().toString() + '% yakunlandi',
+                '${(progress * 100).round()}% yakunlandi',
                 style: const TextStyle(color: Colors.white60, fontSize: 11),
               ),
             ),
