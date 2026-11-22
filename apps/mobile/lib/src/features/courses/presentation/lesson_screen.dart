@@ -1,17 +1,72 @@
+import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../progress/data/progress_repository.dart';
 import '../data/course_repository.dart';
 import '../data/models/course.dart';
 
-class LessonScreen extends ConsumerWidget {
+class LessonScreen extends ConsumerStatefulWidget {
   const LessonScreen({required this.lesson, super.key});
 
   final LessonSummary lesson;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lessonState = ref.watch(lessonContentProvider(lesson.id));
+  ConsumerState<LessonScreen> createState() => _LessonScreenState();
+}
+
+class _LessonScreenState extends ConsumerState<LessonScreen> {
+  bool _isSavingCompletion = false;
+  bool _completedLocally = false;
+
+  Future<void> _completeLesson() async {
+    setState(() => _isSavingCompletion = true);
+    try {
+      await ref
+          .read(progressRepositoryProvider)
+          .completeLesson(widget.lesson.id);
+      if (!mounted) return;
+      setState(() => _completedLocally = true);
+      ref.invalidate(myProgressProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Barakalla! Dars yakunlandi va progress saqlandi.'),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_completionError(error))),
+      );
+    } finally {
+      if (mounted) setState(() => _isSavingCompletion = false);
+    }
+  }
+
+  String _completionError(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map<String, dynamic> && data['detail'] is String) {
+        return data['detail'] as String;
+      }
+      if (error.response == null) {
+        return 'Serverga ulanib bo‘lmadi. Internet va API manzilini tekshiring.';
+      }
+    }
+    if (error is FormatException) return error.message;
+    return 'Dars progressini saqlashda xatolik yuz berdi.';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lessonState = ref.watch(lessonContentProvider(widget.lesson.id));
+    final progressState = ref.watch(myProgressProvider);
+    final completedOnServer = progressState.when(
+      data: (summary) => summary.hasCompletedLesson(widget.lesson.id),
+      loading: () => false,
+      error: (error, stackTrace) => false,
+    );
+    final isCompleted = completedOnServer || _completedLocally;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dars')),
@@ -30,7 +85,7 @@ class LessonScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: () =>
-                      ref.invalidate(lessonContentProvider(lesson.id)),
+                      ref.invalidate(lessonContentProvider(widget.lesson.id)),
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Qayta urinish'),
                 ),
@@ -97,17 +152,36 @@ class LessonScreen extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: 28),
-            FilledButton.icon(
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Dars progressini saqlash keyingi bosqichda ulanadi.',
-                  ),
+            SizedBox(
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: isCompleted || _isSavingCompletion
+                    ? null
+                    : _completeLesson,
+                icon: _isSavingCompletion
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        isCompleted
+                            ? Icons.check_circle_rounded
+                            : Icons.check_circle_outline_rounded,
+                      ),
+                label: Text(
+                  isCompleted ? 'Dars yakunlangan' : 'Darsni tugatdim',
                 ),
               ),
-              icon: const Icon(Icons.check_circle_outline_rounded),
-              label: const Text('Darsni tugatdim'),
             ),
+            if (isCompleted) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Natijangiz profilingizdagi o‘quv progressiga qo‘shildi.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFF72D6B2), fontSize: 12),
+              ),
+            ],
           ],
         ),
       ),
