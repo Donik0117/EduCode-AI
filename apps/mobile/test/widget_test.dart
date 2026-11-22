@@ -2,6 +2,8 @@ import 'package:educode_ai/src/app.dart';
 import 'package:educode_ai/src/features/auth/application/auth_controller.dart';
 import 'package:educode_ai/src/features/auth/data/auth_repository.dart';
 import 'package:educode_ai/src/features/auth/data/models/auth_user.dart';
+import 'package:educode_ai/src/features/courses/data/course_repository.dart';
+import 'package:educode_ai/src/features/courses/data/models/course.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -49,17 +51,49 @@ class _FakeAuthRepository implements AuthRepository {
   }
 }
 
+class _FakeCourseRepository implements CourseRepository {
+  @override
+  Future<List<Course>> getCourses() async => const [
+        Course(
+          id: 'python-1',
+          slug: 'python-foundations',
+          title: 'Python dasturlash',
+          description: 'Python asoslari va dasturlash mantiqi.',
+          category: 'Backend va algoritmlar',
+          level: 'beginner',
+          language: 'Python',
+          lessonsCount: 36,
+          estimatedHours: 12,
+        ),
+        Course(
+          id: 'flutter-1',
+          slug: 'flutter-apps',
+          title: 'Flutter',
+          description: 'Flutter yordamida mobil ilovalar yaratish.',
+          category: 'Mobil dasturlash',
+          level: 'intermediate',
+          language: 'Dart',
+          lessonsCount: 42,
+          estimatedHours: 18,
+        ),
+      ];
+}
+
 Widget _buildApp(_FakeAuthRepository repository) {
   return ProviderScope(
     overrides: [
       authRepositoryProvider.overrideWith((ref) => repository),
+      courseRepositoryProvider.overrideWith(
+        (ref) => _FakeCourseRepository(),
+      ),
     ],
     child: const EduCodeApp(),
   );
 }
 
 void main() {
-  testWidgets('Unauthenticated user sees the login form', (tester) async {
+  testWidgets('Unauthenticated user sees the login and registration forms',
+      (tester) async {
     await tester.pumpWidget(_buildApp(_FakeAuthRepository()));
     await tester.pumpAndSettle();
 
@@ -75,7 +109,8 @@ void main() {
     expect(find.byType(TextFormField), findsNWidgets(3));
   });
 
-  testWidgets('Student can sign in and navigate the application', (tester) async {
+  testWidgets('Student can sign in and navigate the application',
+      (tester) async {
     await tester.pumpWidget(_buildApp(_FakeAuthRepository()));
     await tester.pumpAndSettle();
 
@@ -95,6 +130,10 @@ void main() {
     await tester.tap(find.text('Kurslar').last);
     await tester.pumpAndSettle();
     expect(find.text('Barcha kurslar'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Python dasturlash'));
+    await tester.pumpAndSettle();
+    expect(find.text('Python dasturlash'), findsOneWidget);
 
     await tester.tap(find.text('Amaliyot'));
     await tester.pumpAndSettle();
