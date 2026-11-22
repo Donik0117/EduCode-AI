@@ -6,6 +6,8 @@ import 'package:educode_ai/src/features/courses/data/course_repository.dart';
 import 'package:educode_ai/src/features/courses/data/models/course.dart';
 import 'package:educode_ai/src/features/progress/data/models/learning_progress.dart';
 import 'package:educode_ai/src/features/progress/data/progress_repository.dart';
+import 'package:educode_ai/src/features/quizzes/data/models/quiz.dart';
+import 'package:educode_ai/src/features/quizzes/data/quiz_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -145,6 +147,71 @@ class _FakeProgressRepository implements ProgressRepository {
   }
 }
 
+class _FakeQuizRepository implements QuizRepository {
+  static const _quiz = Quiz(
+    id: 'quiz-python-basics',
+    moduleId: 'module-python-core',
+    title: 'Python asoslari: bilimni tekshirish',
+    description: 'Python asoslari bo‘yicha qisqa test.',
+    durationMinutes: 5,
+    questionsCount: 1,
+  );
+
+  static const _question = QuizQuestion(
+    id: 'quiz-python-q1',
+    prompt: 'Python’da butun son turi qaysi?',
+    options: ['str', 'int', 'float', 'bool'],
+    points: 1,
+    position: 1,
+  );
+
+  @override
+  Future<List<Quiz>> getQuizzes() async => const [_quiz];
+
+  @override
+  Future<QuizDetail> getQuiz(String quizId) async => const QuizDetail(
+        id: 'quiz-python-basics',
+        moduleId: 'module-python-core',
+        title: 'Python asoslari: bilimni tekshirish',
+        description: 'Python asoslari bo‘yicha qisqa test.',
+        durationMinutes: 5,
+        questionsCount: 1,
+        questions: [_question],
+      );
+
+  @override
+  Future<QuizResult> submitQuiz(
+    String quizId,
+    Map<String, String> answers,
+  ) async {
+    final answer = answers['quiz-python-q1'];
+    final correct = answer == 'int';
+    return QuizResult(
+      id: 'attempt-1',
+      quizId: quizId,
+      quizTitle: _quiz.title,
+      score: correct ? 1 : 0,
+      totalPoints: 1,
+      correctAnswers: correct ? 1 : 0,
+      questionCount: 1,
+      percentage: correct ? 100 : 0,
+      submittedAt: DateTime.utc(2026, 11, 22),
+      questionResults: [
+        QuizQuestionResult(
+          questionId: 'quiz-python-q1',
+          prompt: _question.prompt,
+          selectedAnswer: answer,
+          correctAnswer: 'int',
+          isCorrect: correct,
+          explanation: 'int — Python’dagi butun sonlar uchun ishlatiladi.',
+          pointsAwarded: correct ? 1 : 0,
+          pointsPossible: 1,
+        ),
+      ],
+    );
+  }
+}
+
 Widget _buildApp(_FakeAuthRepository repository) {
   return ProviderScope(
     overrides: [
@@ -154,6 +221,9 @@ Widget _buildApp(_FakeAuthRepository repository) {
       ),
       progressRepositoryProvider.overrideWith(
         (ref) => _FakeProgressRepository(),
+      ),
+      quizRepositoryProvider.overrideWith(
+        (ref) => _FakeQuizRepository(),
       ),
     ],
     child: const EduCodeApp(),
@@ -230,7 +300,20 @@ void main() {
 
     await tester.tap(find.text('Amaliyot'));
     await tester.pumpAndSettle();
-    expect(find.text('Kod yozish orqali o‘rganing'), findsOneWidget);
+    expect(find.text('Bilimingizni amaliyotda sinang'), findsOneWidget);
+    expect(find.text('Python asoslari: bilimni tekshirish'), findsOneWidget);
+
+    await tester.tap(find.text('Python asoslari: bilimni tekshirish'));
+    await tester.pumpAndSettle();
+    expect(find.text('Python’da butun son turi qaysi?'), findsOneWidget);
+    await tester.tap(find.text('int'));
+    await tester.tap(find.text('Testni topshirish'));
+    await tester.pumpAndSettle();
+    expect(find.text('Natijangiz'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
+
+    await tester.tap(find.text('Amaliyotga qaytish'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();
